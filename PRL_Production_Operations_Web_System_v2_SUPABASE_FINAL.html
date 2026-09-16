@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRL Production Operations System v2 — PRL Production Operations</title>
+<style>
+:root{
+  --bg:#f4f7fb;--panel:#ffffff;--panel2:#f8fafc;--text:#172033;--muted:#6b7280;
+  --primary:#0b6b4d;--primary2:#09563e;--accent:#e9f6f1;--line:#e5e7eb;
+  --warning:#9a6700;--danger:#b42318;--shadow:0 10px 30px rgba(16,24,40,.08);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.app{display:grid;grid-template-columns:265px 1fr;min-height:100vh}
+.sidebar{background:#0b2f26;color:#fff;padding:22px 16px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+.logo{display:flex;gap:12px;align-items:center;padding:5px 8px 22px}
+.logo-mark{width:42px;height:42px;border-radius:13px;background:linear-gradient(135deg,#2db07c,#0b6b4d);display:grid;place-items:center;font-weight:800;box-shadow:0 7px 18px rgba(45,176,124,.25)}
+.logo b{display:block;font-size:15px}.logo small{color:#b8d9ce}
+.nav{display:grid;gap:7px}
+.nav button{border:0;background:transparent;color:#c9ddd7;text-align:left;padding:12px 13px;border-radius:10px;display:flex;gap:10px;align-items:center}
+.nav button:hover,.nav button.active{background:#164638;color:#fff}
+.side-note{margin-top:auto;padding:14px;border:1px solid #285849;background:#123d32;border-radius:12px;font-size:12px;color:#cae2da;line-height:1.5}
+.main{min-width:0}
+.topbar{height:74px;background:rgba(255,255,255,.94);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:10;backdrop-filter:blur(10px)}
+.topbar h1{font-size:19px;margin:0}.topbar .sub{font-size:12px;color:var(--muted);margin-top:3px}
+.actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:#fff;color:var(--text);border-radius:9px;padding:9px 13px;font-weight:600}
+.btn:hover{background:#f8fafc}.btn.primary{background:var(--primary);color:#fff;border-color:var(--primary)}.btn.primary:hover{background:var(--primary2)}
+.content{padding:26px;max-width:1500px;margin:auto}
+.page{display:none}.page.active{display:block}
+.hero{background:linear-gradient(120deg,#0b6b4d,#124737);color:#fff;border-radius:18px;padding:24px;box-shadow:var(--shadow);display:flex;justify-content:space-between;gap:20px;align-items:center}
+.hero h2{margin:0 0 7px;font-size:27px}.hero p{margin:0;color:#d8eee7;max-width:760px;line-height:1.55}
+.badge{display:inline-block;background:#e8f6f0;color:#086044;border-radius:999px;padding:5px 9px;font-size:11px;font-weight:700}
+.hero .badge{background:rgba(255,255,255,.14);color:#fff}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:18px 0}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 4px 14px rgba(16,24,40,.04)}
+.kpi .label{font-size:12px;color:var(--muted);font-weight:600}.kpi .value{font-size:27px;font-weight:800;margin-top:7px}.kpi .hint{font-size:11px;color:var(--muted);margin-top:6px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:15px;box-shadow:0 5px 18px rgba(16,24,40,.045);margin-bottom:18px}
+.card-head{padding:17px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.card-head h3{margin:0;font-size:15px}.card-head p{margin:4px 0 0;font-size:12px;color:var(--muted)}
+.card-body{padding:20px}
+.section-title{font-size:12px;color:var(--primary);font-weight:800;text-transform:uppercase;letter-spacing:.08em;margin:4px 0 14px}
+.form-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px 16px}
+.field{display:flex;flex-direction:column;gap:6px}.field.span2{grid-column:span 2}.field.span4{grid-column:1/-1}
+label{font-size:12px;font-weight:700;color:#364152}
+input,select,textarea{width:100%;border:1px solid #d7dce3;background:#fff;border-radius:9px;padding:10px 11px;color:#172033;outline:none}
+input:focus,select:focus,textarea:focus{border-color:#41a884;box-shadow:0 0 0 3px rgba(11,107,77,.10)}
+input[readonly]{background:#f5f7f9;color:#475467}
+.req:after{content:" *";color:#d92d20}
+.line{height:1px;background:var(--line);margin:20px 0}
+.inline-total{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:13px}
+.mini{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px}.mini span{display:block;font-size:10px;color:var(--muted)}.mini b{font-size:16px}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:900px;background:#fff}
+th,td{border-bottom:1px solid var(--line);border-right:1px solid #eef0f3;padding:9px 10px;text-align:left;font-size:12px;vertical-align:middle}
+th{background:#f2f5f7;color:#344054;font-weight:800;white-space:nowrap}
+tr:last-child td{border-bottom:0}.num{text-align:right;font-variant-numeric:tabular-nums}.total-row td{font-weight:800;background:#f8fafc}
+.report{background:#fff;border:1px solid #d8dde3;border-radius:14px;padding:24px}
+.report-brand{text-align:center;border-bottom:2px solid #1f2937;padding-bottom:11px;margin-bottom:14px}.report-brand h2{margin:0;font-size:22px}.report-brand p{margin:4px 0;color:#475467;font-size:12px}.report-brand h3{margin:12px 0 0;font-size:16px;text-decoration:underline}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #98a2b3;margin:12px 0}.meta div{padding:8px 9px;border-right:1px solid #98a2b3;border-bottom:1px solid #98a2b3;min-height:45px}.meta div:nth-child(4n){border-right:0}.meta b{display:block;font-size:10px;color:#667085;margin-bottom:3px;text-transform:uppercase}.meta span{font-size:12px;font-weight:600}
+.report-section{font-weight:800;text-align:center;background:#e8ecef;border:1px solid #667085;padding:7px;margin-top:12px}
+.signs{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:18px}.sign{border-top:1px solid #8b93a1;padding-top:8px;text-align:center;font-size:10px;min-height:60px}.sign b{display:block;font-size:10px;margin-bottom:8px}
+.status{display:flex;align-items:center;gap:7px;font-size:12px}.dot{width:8px;height:8px;border-radius:50%;background:#12b76a}
+.note{padding:12px 14px;background:#fff8e8;border:1px solid #f2d59a;color:#704f00;border-radius:10px;font-size:12px;line-height:1.5}
+.empty{color:#98a2b3}
+.footer{color:#7d8797;font-size:11px;text-align:center;padding:14px}
+.toast{position:fixed;right:22px;bottom:22px;background:#172033;color:#fff;padding:11px 15px;border-radius:10px;box-shadow:var(--shadow);opacity:0;transform:translateY(10px);pointer-events:none;transition:.25s;z-index:100}.toast.show{opacity:1;transform:none}
+.mobile-menu{display:none}
+@media(max-width:1100px){.grid4{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:repeat(2,1fr)}.field.span4{grid-column:1/-1}.meta{grid-template-columns:repeat(2,1fr)}.meta div:nth-child(4n){border-right:1px solid #98a2b3}.meta div:nth-child(2n){border-right:0}.signs{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:780px){.app{display:block}.sidebar{position:fixed;left:-280px;z-index:50;width:265px;transition:.25s}.sidebar.open{left:0}.mobile-menu{display:inline-block}.topbar{padding:0 14px}.content{padding:14px}.hero{display:block}.hero h2{font-size:22px}.grid4{grid-template-columns:1fr 1fr}.form-grid{grid-template-columns:1fr}.field.span2,.field.span4{grid-column:auto}.inline-total{grid-template-columns:1fr}.meta{grid-template-columns:1fr}.meta div{border-right:0}.grid4 .kpi{padding:14px}}
+@media print{
+  body{background:#fff}.sidebar,.topbar,.no-print,.toast,.footer{display:none!important}.app{display:block}.content{padding:0;max-width:none}.page{display:none!important}.page.print-target{display:block!important}.report{border:0;border-radius:0;padding:0}.card{box-shadow:none;border:0}.card-head{display:none}.card-body{padding:0}.table-wrap{overflow:visible;border-radius:0}table{min-width:0}th,td{font-size:9px;padding:5px}.report-brand h2{font-size:17px}.report-section{font-size:10px}.meta div{min-height:36px;padding:5px}.signs{grid-template-columns:repeat(5,1fr)}@page{size:A4 portrait;margin:8mm}
+}
+
+/* Login screen */
+#loginScreen{position:fixed;inset:0;z-index:99999;background:linear-gradient(135deg,#0f172a,#1e293b);display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{width:min(420px,100%);background:#fff;border-radius:20px;padding:32px;box-shadow:0 25px 70px rgba(0,0,0,.35)}
+.login-brand{text-align:center;margin-bottom:24px}
+.login-brand h1{margin:0 0 6px;font-size:24px;color:#0f172a}
+.login-brand p{margin:0;color:#64748b;font-size:13px}
+.login-field{margin:14px 0}
+.login-field label{display:block;font-size:13px;font-weight:700;margin-bottom:7px;color:#334155}
+.login-field input{width:100%;box-sizing:border-box;padding:12px 13px;border:1px solid #cbd5e1;border-radius:10px;font-size:14px;outline:none}
+.login-field input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.login-error{display:none;color:#b91c1c;background:#fef2f2;border:1px solid #fecaca;padding:10px;border-radius:9px;font-size:13px;margin:12px 0}
+.login-btn{width:100%;border:0;border-radius:10px;padding:12px;background:#2563eb;color:#fff;font-weight:700;cursor:pointer;font-size:14px}
+.login-btn:hover{background:#1d4ed8}
+body.app-locked #appShell{display:none!important}
+body.app-unlocked #loginScreen{display:none!important}
+
+
+.password-wrap{position:relative}
+.password-wrap input{padding-right:48px}
+.password-eye{position:absolute;right:7px;top:50%;transform:translateY(-50%);border:0;background:transparent;cursor:pointer;font-size:18px;padding:6px}
+
+
+/* v2 system styles */
+.page-head{margin-bottom:16px}.page-head h2{margin:0 0 4px}.page-head p{margin:0;color:#64748b}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+.stat-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:16px}
+.stat-card .label{font-size:12px;color:#64748b}.stat-card .value{font-size:25px;font-weight:800;margin-top:5px}
+.analytics-table{width:100%;border-collapse:collapse}.analytics-table th,.analytics-table td{padding:9px;border-bottom:1px solid #e2e8f0;text-align:left}.analytics-table th{font-size:12px;color:#475569}
+#restoreFile{margin:10px 0;padding:9px;border:1px solid #cbd5e1;border-radius:8px;width:100%;max-width:420px}
+@media(max-width:700px){.cards{grid-template-columns:1fr 1fr}.analytics-table{font-size:12px}}
+
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="app-locked">
+
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-brand">
+      <h1>Punjab Riceland</h1>
+      <p>Production Operations System</p>
+    </div>
+    <form onsubmit="return handleLogin(event)">
+      <div class="login-field">
+        <label>Username</label>
+        <input id="loginUsername" type="text" autocomplete="username" placeholder="Enter username" required>
+      </div>
+      <div class="login-field">
+        <label>Password</label>
+        <div class="password-wrap">
+        <input id="loginPassword" type="password" autocomplete="current-password" placeholder="Enter password" required>
+        <button type="button" class="password-eye" id="passwordEye" onclick="togglePassword()" aria-label="Show password">👁️</button>
+      </div>
+      </div>
+      <div id="loginError" class="login-error">Invalid username or password.</div>
+      <button class="login-btn" type="submit">Login</button>
+    </form>
+  </div>
+</div>
+
+<div class="app">
+<aside class="sidebar" id="sidebar">
+  <div class="logo"><div class="logo-mark">PRL</div><div><b>Production Operations</b><small>Punjab Riceland Agro Foods</small></div></div>
+  <nav class="nav">
+    <button class="active" data-page="dashboard">▦ Dashboard</button>
+    <button data-page="entry">✎ Data Entry</button>
+    <button data-page="production">▤ Production Report</button>
+    <button data-page="packing">▣ Packing Material</button>
+    <button data-page="gdm">▧ GDM Report</button>
+    <button data-page="history">☷ Entry History</button>
+  </nav>
+  <div class="side-note">
+    <b>Workbook mapped</b><br>
+    Data Entry → Production Report → GDM.<br>
+    Dropdowns and workbook calculations are built into this web app.
+  </div>
+</aside>
+
+<main class="main">
+<header class="topbar">
+  <div style="display:flex;gap:10px;align-items:center">
+    <button class="btn mobile-menu" onclick="toggleMenu()">☰</button>
+    <div><h1 id="pageTitle">Operations Dashboard</h1><div class="sub">Packing • Quality • Production • Dispatch documentation</div></div>
+  </div>
+  <div class="actions no-print">
+    <span class="status"><span class="dot"></span> Supabase Connected</span>
+    <button class="btn" onclick="clearForm()">New Entry</button>
+    <button class="btn primary" onclick="saveData()">Save</button>
+  </div>
+</header>
+
+<div class="content">
+
+<section class="page active" id="dashboard">
+  <div class="hero">
+    <div><span class="badge">Excel workflow converted to web</span><h2>PRL Production Operations</h2><p>One clean entry screen powers the production report, packing-material calculations and GDM report. Designed around the uploaded PRL Production Report workbook.</p></div>
+    <div style="text-align:right"><div style="font-size:12px;color:#c9e5dc">Current Instruction</div><div id="heroInstruction" style="font-size:28px;font-weight:800">—</div></div>
+  </div>
+  <div class="grid4">
+    <div class="kpi"><div class="label">Total Finished Bags</div><div class="value" id="kpiBags">0</div><div class="hint">FG line 1 + line 2</div></div>
+    <div class="kpi"><div class="label">Total Quantity</div><div class="value"><span id="kpiQtls">0</span> <small style="font-size:12px">Qtls</small></div><div class="hint">Calculated from bag qty × pack size</div></div>
+    <div class="kpi"><div class="label">Containers / FCL</div><div class="value" id="kpiFcl">0</div><div class="hint">Calculated using Qtls per FCL</div></div>
+    <div class="kpi"><div class="label">Packing Material Received</div><div class="value" id="kpiReceived">0</div><div class="hint">Consumed + extra + damaged</div></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div><h3>Current Job Snapshot</h3><p>Live preview from Data Entry</p></div><span class="badge" id="jobStatus">Draft</span></div>
+    <div class="card-body">
+      <div class="form-grid">
+        <div class="mini"><span>Buyer</span><b id="dashBuyer">—</b></div>
+        <div class="mini"><span>Destination</span><b id="dashDestination">—</b></div>
+        <div class="mini"><span>Raw Goods</span><b id="dashRaw">—</b></div>
+        <div class="mini"><span>Brand</span><b id="dashBrand">—</b></div>
+      </div>
+    </div>
+  </div>
+  <div class="note"><b>How to use:</b> Fill only the Data Entry screen. All report pages update automatically. Use “Print / Save PDF” inside Production Report or GDM Report when documentation is ready.</div>
+</section>
+
+<section class="page" id="entry">
+  <div class="card">
+    <div class="card-head"><div><h3>Data Entry</h3><p>All editable workbook fields, grouped for easier use.</p></div><span class="badge">Source Sheet: Data Entry</span></div>
+    <div class="card-body">
+      <div class="section-title">Job & Buyer Details</div>
+      <div class="form-grid">
+        <div class="field span2"><label class="req">Branch Address</label><select id="branch"><option value=""></option><option>Mithi Rohar, New G.I.D.C-II, Gandhidham, Kutch - 370201 (GUJARAT)</option><option>615, 6th Floor, D-Wing, Neelkanth Business Park, Vidya Vihar (West) MUMBAI</option></select></div>
+        <div class="field"><label>Sr. No.</label><input id="srNo" inputmode="numeric"></div>
+        <div class="field"><label class="req">Date</label><input id="date" type="date"></div>
+        <div class="field"><label class="req">Instruction No.</label><input id="instruction"></div>
+        <div class="field"><label>Export Invoice No.</label><input id="invoice"></div>
+        <div class="field"><label class="req">Buyer Name</label><select id="buyer"><option value=""></option><option>Dhirani Foods Stuff L.L.C.</option><option>Gautam General Trading L.L.C.</option></select></div>
+        <div class="field"><label class="req">Destination</label><select id="destination"><option value=""></option><option>Jebel Ali</option><option>Djibouti</option><option>Benin</option></select></div>
+        <div class="field"><label>Location</label><input id="location"></div>
+        <div class="field"><label>Plant No.</label><input id="plant"></div>
+      </div>
+
+      <div class="line"></div><div class="section-title">Rice Consumption</div>
+      <div class="form-grid">
+        <div class="field span2"><label class="req">Raw Goods</label><select id="rawGoods"><option value=""></option><option>IR 64 Sella</option><option>IR 64 Steam</option></select></div>
+        <div class="field"><label>% Blending</label><input id="blending" type="number" min="0" max="100" step="0.01"></div>
+      </div>
+
+      <div class="line"></div><div class="section-title">Finished Goods — Line 1</div>
+      <div class="form-grid">
+        <div class="field span2"><label class="req">FG Brand Name</label><select id="brand1"><option value=""></option><option>PRL US STYLE 18 KG.</option><option>FLYING HORSE 50 KG.</option><option>LUCKY LOTUS 25 KG.</option></select></div>
+        <div class="field"><label>Pkg. Date</label><input id="pkgDate1" placeholder="MM/YYYY"></div>
+        <div class="field"><label>Exp. Date</label><input id="expDate1" placeholder="MM/YYYY"></div>
+        <div class="field"><label>Batch No.</label><input id="batch1"></div>
+        <div class="field"><label>Bags Type</label><select id="bagType1"><option value=""></option><option>BOPP</option><option>NON WOVEN</option><option>PP</option><option>JUTE</option></select></div>
+        <div class="field"><label>Bags Qty</label><input id="bags1" type="number" min="0" step="1"></div>
+        <div class="field"><label>Pkg Size (KG)</label><select id="pkgSize1"><option value=""></option><option>18</option><option>25</option><option>50</option></select></div>
+        <div class="field"><label>Qtls per FCL</label><select id="qtlsFcl1"><option value=""></option><option>270</option><option>260</option><option>258.3</option></select></div>
+      </div>
+      <div class="inline-total">
+        <div class="mini"><span>Qty (Qtls.) — Excel C24</span><b id="qtyQtls1">0</b></div>
+        <div class="mini"><span>No. of FCL — Excel C26</span><b id="fcl1">0</b></div>
+        <div class="mini"><span>Report Batch</span><b id="reportBatch1">—</b></div>
+      </div>
+
+      <div class="line"></div><div class="section-title">Finished Goods — Line 2 (Optional)</div>
+      <div class="form-grid">
+        <div class="field span2"><label>FG Brand Name</label><select id="brand2"><option value=""></option><option>PRL US STYLE 18 KG.</option><option>FLYING HORSE 50 KG.</option><option>LUCKY LOTUS 25 KG.</option></select></div>
+        <div class="field"><label>Pkg. Date</label><input id="pkgDate2" placeholder="MM/YYYY"></div>
+        <div class="field"><label>Exp. Date</label><input id="expDate2" placeholder="MM/YYYY"></div>
+        <div class="field"><label>Batch No.</label><input id="batch2"></div>
+        <div class="field"><label>Bags Type</label><select id="bagType2"><option value=""></option><option>BOPP</option><option>NON WOVEN</option><option>PP</option><option>JUTE</option></select></div>
+        <div class="field"><label>Bags Qty</label><input id="bags2" type="number" min="0" step="1"></div>
+        <div class="field"><label>Pkg Size (KG)</label><select id="pkgSize2"><option value=""></option><option>18</option><option>25</option><option>50</option></select></div>
+        <div class="field"><label>Qtls per FCL</label><select id="qtlsFcl2"><option value=""></option><option>270</option><option>260</option><option>258.3</option></select></div>
+      </div>
+      <div class="inline-total">
+        <div class="mini"><span>Qty (Qtls.) — Excel C25</span><b id="qtyQtls2">0</b></div>
+        <div class="mini"><span>No. of FCL — Excel C27</span><b id="fcl2">0</b></div>
+        <div class="mini"><span>Report Batch</span><b id="reportBatch2">—</b></div>
+      </div>
+
+      <div class="line"></div><div class="section-title">Packing Material & Sign-off</div>
+      <div class="form-grid">
+        <div class="field span2"><label>FG Brand Name (Packing Material)</label><select id="packingBrand"><option value=""></option><option>PRL US STYLE 18 KG.</option><option>FLYING HORSE 50 KG.</option><option>LUCKY LOTUS 25 KG.</option></select></div>
+        <div class="field"><label>Extra Bags Stuffing</label><input id="extraBags" type="number" min="0" step="1"></div>
+        <div class="field"><label>Damaged Bags</label><input id="damagedBags" type="number" min="0" step="1"></div>
+        <div class="field"><label>Branded Strip / Hologram</label><select id="branded"><option>No</option><option>Yes</option></select></div>
+        <div class="field"><label>Damaged Strap Roll (KG)</label><input id="damagedStrap" type="number" min="0" step="0.01"></div>
+        <div class="field"><label>Damaged Hologram</label><input id="damagedHolo" type="number" min="0" step="1"></div>
+        <div class="field"><label>Prepared By</label><select id="preparedBy"><option>Name :</option><option>Name : Mohd Naseem</option></select></div>
+        <div class="field"><label>Quality Checked By</label><select id="qualityBy"><option>Name :</option><option>Name : Mohd Naseem</option></select></div>
+      </div>
+    </div>
+  </div>
+  <div class="actions no-print" style="justify-content:flex-end;margin-bottom:20px">
+    <button class="btn" onclick="clearForm()">Clear</button>
+    <button class="btn primary" onclick="saveData()">Save Entry</button>
+  </div>
+</section>
+
+<section class="page" id="production">
+  <div class="card">
+    <div class="card-head"><div><h3>Production Report</h3><p>Automatically generated from Data Entry, matching workbook logic.</p></div><div class="actions no-print"><button class="btn" onclick="printPage('production')">Print / Save PDF</button><button class="btn primary" onclick="downloadProductionExcel()">⬇ Download Excel</button><button class="btn primary" onclick="shareProductionPDF()">☘ Share PDF on WhatsApp</button></div></div>
+    <div class="card-body"><div class="report" id="productionReport">
+      <div class="report-brand"><h2>Punjab Riceland Agro Foods Private Limited</h2><p id="rBranch">Mithi Rohar, New G.I.D.C-II, Gandhidham, Kutch - 370201</p><h3>PRODUCTION REPORT</h3></div>
+      <div class="meta">
+        <div><b>Sr. No.</b><span id="rSr">—</span></div><div><b>Date</b><span id="rDate">—</span></div><div><b>Packing Instruction No.</b><span id="rInstruction">—</span></div><div><b>Buyer Name</b><span id="rBuyer">—</span></div>
+        <div><b>Export Invoice No.</b><span id="rInvoice">—</span></div><div><b>Destination</b><span id="rDestination">—</span></div><div><b>Location</b><span id="rLocation">—</span></div><div><b>Plant No.</b><span id="rPlant">—</span></div>
+      </div>
+      <div class="report-section">Consumption of Rice</div>
+      <div class="table-wrap"><table><thead><tr><th>Sr.No.</th><th>Description of Raw Goods</th><th>Bags type</th><th>Qty (Bags)</th><th>Qty (Qtls.)</th><th>% Blending</th></tr></thead><tbody>
+        <tr><td>1</td><td id="rRaw">—</td><td>—</td><td class="num">—</td><td class="num">—</td><td class="num" id="rBlend">—</td></tr>
+        <tr><td>2</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>3</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>4</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>5</td><td></td><td></td><td></td><td></td><td></td></tr>
+      </tbody></table></div>
+
+      <div class="report-section">Production of Rice</div>
+      <div class="table-wrap"><table><thead><tr><th>Sr.No.</th><th>Finished Goods (Brand Name)</th><th>Pkg. Date</th><th>Exp. Date</th><th>Batch No.</th><th>Bags type</th><th>Qty (Bags)</th><th>Qty (Qtls.)</th><th>No. of FCL</th></tr></thead><tbody>
+        <tr><td>1</td><td id="rBrand1">—</td><td id="rPkg1">—</td><td id="rExp1">—</td><td id="rBatch1">—</td><td id="rBagType1">—</td><td class="num" id="rBags1">—</td><td class="num" id="rQtls1">—</td><td class="num" id="rFcl1">—</td></tr>
+        <tr><td>2</td><td id="rBrand2">—</td><td id="rPkg2">—</td><td id="rExp2">—</td><td id="rBatch2">—</td><td id="rBagType2">—</td><td class="num" id="rBags2">—</td><td class="num" id="rQtls2">—</td><td class="num" id="rFcl2">—</td></tr>
+        <tr class="total-row"><td></td><td colspan="5">Total</td><td class="num" id="rTotalBags">0</td><td class="num" id="rTotalQtls">0</td><td class="num" id="rTotalFcl">0</td></tr>
+      </tbody></table></div>
+
+      <div class="report-section">Consumption of Packing Material Details</div>
+      <div class="table-wrap"><table><thead><tr><th>Sr.No.</th><th>Brand Name</th><th>Received Qty</th><th>Consumed Qty</th><th>Extra Bags Stuffed With Container</th><th>Shortage in Bundles</th><th>Damage Bags</th><th>Balance Returned Qty</th><th>Remarks</th></tr></thead><tbody>
+        <tr><td>1</td><td id="rPackingBrand">—</td><td class="num" id="rReceived">0</td><td class="num" id="rConsumed">0</td><td class="num" id="rExtra">0</td><td></td><td class="num" id="rDamaged">0</td><td></td><td></td></tr>
+      </tbody></table></div>
+
+      <div class="report-section">Coupons</div>
+      <div class="table-wrap"><table><tbody><tr><td style="width:60px">1</td><td>No</td></tr><tr><td>2</td><td>No</td></tr></tbody></table></div>
+
+      <div class="report-section">Stitching Strip (Brand Tape)</div>
+      <div class="table-wrap"><table><thead><tr><th>Sr.No.</th><th>Applicable</th><th>Received</th><th>Consumed</th><th>Damage</th><th>Calculation Qty</th></tr></thead><tbody><tr><td>1</td><td id="rStripFlag">No</td><td id="rStripReceived">—</td><td id="rStripConsumed">—</td><td id="rStripDamage">—</td><td id="rStripCalc">0</td></tr></tbody></table></div>
+
+      <div class="report-section">Holograms</div>
+      <div class="table-wrap"><table><thead><tr><th>Sr.No.</th><th>Applicable</th><th>Received</th><th>Consumed</th><th>Damage</th></tr></thead><tbody><tr><td>1</td><td id="rHoloFlag">No</td><td id="rHoloReceived">—</td><td id="rHoloConsumed">—</td><td id="rHoloDamage">—</td></tr></tbody></table></div>
+
+      <div class="signs">
+        <div class="sign"><b>Prepared By</b>Warehouse Executive<br><span id="rPrepared">Name :</span></div>
+        <div class="sign"><b>Checked By</b>Quality Control Executive<br><span id="rQuality">Name :</span></div>
+        <div class="sign"><b>Verified By</b>Sr. Warehouse Executive<br>Name:</div>
+        <div class="sign"><b>PM-Issued By</b>Packing Material Incharge<br>Name:</div>
+        <div class="sign"><b>Approved By</b>Plant/Ops Manager<br>Name:</div>
+      </div>
+    </div></div>
+  </div>
+</section>
+
+<section class="page" id="packing">
+  <div class="card">
+    <div class="card-head"><div><h3>Packing Material Calculator</h3><p>Live calculations from the Production Report formulas.</p></div><span class="badge">Formula-driven</span></div>
+    <div class="card-body">
+      <div class="grid4" style="margin-top:0">
+        <div class="kpi"><div class="label">Consumed Bags</div><div class="value" id="pConsumed">0</div></div>
+        <div class="kpi"><div class="label">Extra Bags</div><div class="value" id="pExtra">0</div></div>
+        <div class="kpi"><div class="label">Damaged Bags</div><div class="value" id="pDamage">0</div></div>
+        <div class="kpi"><div class="label">Received Qty</div><div class="value" id="pReceived">0</div></div>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>Material</th><th>Applicable</th><th>Excel / Workbook Logic</th><th>Calculated Consumption</th><th>Damage</th><th>Received</th></tr></thead><tbody>
+        <tr><td>Packing Bags</td><td>Yes</td><td>Received = Consumed + Extra + Damage</td><td class="num" id="pmBagConsumed">0</td><td class="num" id="pmBagDamage">0</td><td class="num" id="pmBagReceived">0</td></tr>
+        <tr><td>Stitching Strip / Brand Tape</td><td id="pmStripFlag">No</td><td>FLOOR((Total Bags × 0.001324041) + 0.004, 0.01)</td><td class="num" id="pmStripConsumed">—</td><td class="num" id="pmStripDamage">—</td><td class="num" id="pmStripReceived">—</td></tr>
+        <tr><td>Hologram</td><td id="pmHoloFlag">No</td><td>Consumed = Total Packed Bags</td><td class="num" id="pmHoloConsumed">—</td><td class="num" id="pmHoloDamage">—</td><td class="num" id="pmHoloReceived">—</td></tr>
+      </tbody></table></div>
+    </div>
+  </div>
+</section>
+
+<section class="page" id="gdm">
+  <div class="card">
+    <div class="card-head"><div><h3>GDM Production Report</h3><p>GDM layout and its own workbook formulas.</p></div><div class="actions no-print"><button class="btn" onclick="printPage('gdm')">Print / Save PDF</button></div></div>
+    <div class="card-body"><div class="report">
+      <div class="report-brand"><h2>Punjab Riceland Agro Foods Private Limited</h2><p>Mithi Rohar, New G.I.D.C-II, Gandhidham, Kutch - 370201</p><h3>PRODUCTION REPORT — GDM</h3></div>
+      <div class="meta">
+        <div><b>Sr. No.</b><span id="gSr">—</span></div><div><b>Date</b><span id="gDate">—</span></div><div><b>Packing Instruction No.</b><span id="gInstruction">—</span></div><div><b>Batch No.</b><span id="gBatch">—</span></div>
+        <div><b>Buyer</b><span id="gBuyer">—</span></div><div><b>Export Invoice No.</b><span id="gInvoice">—</span></div><div><b>Destination</b><span id="gDestination">—</span></div><div><b>Plant No.</b><span id="gPlant">—</span></div>
+      </div>
+      <div class="report-section">Consumption of Rice</div>
+      <div class="table-wrap"><table><thead><tr><th>Sr.No.</th><th>Description of Raw Goods</th><th>Bags type</th><th>Qty (Bags)</th><th>Qty (Qtls.)</th><th>% Blending</th></tr></thead><tbody>
+        <tr><td>1</td><td id="gRaw">—</td><td></td><td></td><td></td><td id="gBlend">—</td></tr>
+        <tr><td>2</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>3</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>4</td><td></td><td></td><td></td><td></td><td></td></tr><tr><td>5</td><td></td><td></td><td></td><td></td><td></td></tr>
+      </tbody></table></div>
+      <div class="report-section">Production of Rice</div>
+      <div class="table-wrap"><table><thead><tr><th>Sr.No.</th><th>Finished Goods (Brand Name)</th><th>Bags type</th><th>Qty (Bags)</th><th>Qty (Qtls.)</th><th>% age</th></tr></thead><tbody>
+        <tr><td>1</td><td id="gBrand1">—</td><td id="gBagType1">—</td><td id="gBags1" class="num">0</td><td id="gQtls1" class="num">0</td><td></td></tr>
+        <tr><td>2</td><td id="gBrand2">—</td><td id="gBagType2">—</td><td id="gBags2" class="num">0</td><td id="gQtls2" class="num">0</td><td></td></tr>
+        <tr class="total-row"><td></td><td colspan="2">Total</td><td class="num" id="gTotalBags">0</td><td class="num" id="gTotalQtls">0</td><td></td></tr>
+      </tbody></table></div>
+      <div class="report-section">Consumption of Packing Material Details</div>
+      <div class="table-wrap"><table><thead><tr><th>Material</th><th>Received Qty</th><th>Consumed Qty</th><th>Extra</th><th>Damage</th></tr></thead><tbody>
+        <tr><td id="gPackingBrand">—</td><td class="num" id="gReceived">0</td><td class="num" id="gConsumed">0</td><td class="num" id="gExtra">0</td><td class="num" id="gDamage">0</td></tr>
+        <tr><td>Stitching Strip (Brand Tape)</td><td class="num" id="gStripReceived">0</td><td class="num" id="gStripConsumed">0</td><td></td><td class="num" id="gStripDamage">0</td></tr>
+        <tr><td>Holograms</td><td class="num" id="gHoloReceived">0</td><td class="num" id="gHoloConsumed">0</td><td></td><td class="num" id="gHoloDamage">0</td></tr>
+      </tbody></table></div>
+      <div class="signs">
+        <div class="sign"><b>Prepared By</b>(Warehouse Executive)<br>Mohd Naseem</div>
+        <div class="sign"><b>Checked By</b>Quality Control Executive<br>Mohd Naseem</div>
+        <div class="sign"><b>Verified By</b>Sr. Warehouse Executive<br>Name:</div>
+        <div class="sign"><b>PM-Issued By</b>Packing Material Incharge<br>Name:</div>
+        <div class="sign"><b>Approved By</b>Plant Manager<br>Name:</div>
+      </div>
+    </div></div>
+  </div>
+</section>
+
+<section class="page" id="history">
+  <div class="card">
+    <div class="card-head"><div><h3>Saved Entry History</h3><p>Wrong entry ko yahin se Edit ya Delete kar sakte ho.</p></div><div class="actions no-print"><span class="badge" id="historyCount">0 Entries</span><button class="btn" onclick="deleteAllEntries()">🗑 Delete All</button></div></div>
+    <div class="card-body">
+      <div class="table-wrap"><table id="historyTable">
+        <thead><tr><th>#</th><th>Date</th><th>Instruction</th><th>Buyer</th><th>Brand</th><th>Bags</th><th>Qtls</th><th>Saved At</th><th>Action</th></tr></thead>
+        <tbody id="historyBody"></tbody>
+      </table></div>
+      <div id="historyEmpty" class="note" style="display:none;margin-top:14px">Abhi koi saved entry nahi hai. Data Entry bhar kar <b>Save</b> karo.</div>
+    </div>
+  </div>
+</section>
+
+<div class="footer">PRL Production Operations • Single-file offline web app • Data remains in this browser</div>
+</div>
+
+<section id="analytics" class="page" style="display:none">
+  <div class="page-head"><h2>📊 Analytics</h2><p>Production overview from saved entries</p></div>
+  <div class="cards" id="analyticsCards"></div>
+  <div class="panel">
+    <h3>Buyer-wise Production</h3>
+    <div id="buyerAnalytics"></div>
+  </div>
+  <div class="panel">
+    <h3>Brand-wise Production</h3>
+    <div id="brandAnalytics"></div>
+  </div>
+</section>
+
+<section id="backup" class="page" style="display:none">
+  <div class="page-head"><h2>💾 Backup & Restore</h2><p>Keep a safe copy of your production records.</p></div>
+  <div class="panel">
+    <h3>Data Backup</h3>
+    <p>Download all saved entries as a JSON backup file.</p>
+    <button class="btn primary" onclick="backupPRLData()">⬇ Download Backup</button>
+  </div>
+  <div class="panel">
+    <h3>Restore Data</h3>
+    <p>Select a PRL backup JSON file to restore your saved entries.</p>
+    <input type="file" id="restoreFile" accept=".json,application/json">
+    <button class="btn" onclick="restorePRLData()">♻ Restore Backup</button>
+  </div>
+</section>
+
+</main>
+</div>
+<div class="toast" id="toast">Saved</div>
+
+<script>
+const ids=["branch","srNo","date","instruction","invoice","buyer","destination","location","plant","rawGoods","blending",
+"brand1","pkgDate1","expDate1","batch1","bagType1","bags1","pkgSize1","qtlsFcl1",
+"brand2","pkgDate2","expDate2","batch2","bagType2","bags2","pkgSize2","qtlsFcl2",
+"packingBrand","extraBags","damagedBags","branded","damagedStrap","damagedHolo","preparedBy","qualityBy"];
+const num=v=>{const n=parseFloat(v);return isNaN(n)?0:n}
+const val=id=>document.getElementById(id)?.value||"";
+const txt=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=(v===0||v)?v:"—"}
+const fmt=n=>Number.isInteger(n)?String(n):Number(n.toFixed(3)).toString();
+const prettyDate=s=>{if(!s)return "—";const d=new Date(s+"T00:00:00");return isNaN(d)?s:d.toLocaleDateString("en-GB")}
+function calc(){
+  const b1=num(val("bags1")), ps1=num(val("pkgSize1")), qf1=num(val("qtlsFcl1"));
+  const b2=num(val("bags2")), ps2=num(val("pkgSize2")), qf2=num(val("qtlsFcl2"));
+  const q1=b1*ps1/100, q2=b2*ps2/100;
+  const f1=qf1?q1/qf1:0, f2=qf2?q2/qf2:0;
+  const totalBags=b1+b2,totalQtls=q1+q2,totalFcl=f1+f2;
+  const extra=num(val("extraBags")), damage=num(val("damagedBags")), received=totalBags+extra+damage;
+  const branded=val("branded")==="Yes";
+  const strapCalc=totalBags*0.001324041;
+  const strapConsumed=branded?Math.floor((strapCalc+0.004)*100)/100:0;
+  const strapDamage=num(val("damagedStrap"));
+  const strapReceived=branded?strapConsumed+strapDamage:0;
+  const holoDamage=num(val("damagedHolo"));
+  const holoConsumed=branded?totalBags:0, holoReceived=branded?holoConsumed+holoDamage:0;
+  const gdmStripConsumed=branded?(1.67*totalBags/1435):0;
+  const gdmStripReceived=branded?gdmStripConsumed+strapDamage:0;
+
+  txt("qtyQtls1",fmt(q1));txt("qtyQtls2",fmt(q2));txt("fcl1",fmt(f1));txt("fcl2",fmt(f2));
+  txt("reportBatch1",val("batch1")?"IND/"+val("batch1"):"—");txt("reportBatch2",val("batch2")?"IND/"+val("batch2"):"—");
+  txt("kpiBags",fmt(totalBags));txt("kpiQtls",fmt(totalQtls));txt("kpiFcl",fmt(totalFcl));txt("kpiReceived",fmt(received));
+  txt("heroInstruction",val("instruction")?"LG-JA-"+val("instruction"):"—");
+  txt("dashBuyer",val("buyer"));txt("dashDestination",val("destination"));txt("dashRaw",val("rawGoods"));txt("dashBrand",val("brand1"));
+  document.getElementById("jobStatus").textContent=(val("instruction")&&val("buyer")&&val("brand1"))?"Ready":"Draft";
+
+  txt("rBranch",val("branch")||"Mithi Rohar, New G.I.D.C-II, Gandhidham, Kutch - 370201");
+  txt("rSr",val("srNo"));txt("rDate",prettyDate(val("date")));txt("rInstruction",val("instruction")?"LG-JA-"+val("instruction"):"");
+  txt("rBuyer",val("buyer"));txt("rInvoice",val("invoice"));txt("rDestination",val("destination"));txt("rLocation",val("location"));txt("rPlant",val("plant"));
+  txt("rRaw",val("rawGoods"));txt("rBlend",val("blending"));
+  txt("rBrand1",val("brand1"));txt("rPkg1",val("pkgDate1"));txt("rExp1",val("expDate1"));txt("rBatch1",val("batch1")?"IND/"+val("batch1"):"");txt("rBagType1",val("bagType1"));txt("rBags1",b1||"");txt("rQtls1",q1?fmt(q1):"");txt("rFcl1",f1?fmt(f1):"");
+  txt("rBrand2",val("brand2"));txt("rPkg2",val("pkgDate2"));txt("rExp2",val("expDate2"));txt("rBatch2",val("batch2")?"IND/"+val("batch2"):"");txt("rBagType2",val("bagType2"));txt("rBags2",b2||"");txt("rQtls2",q2?fmt(q2):"");txt("rFcl2",f2?fmt(f2):"");
+  txt("rTotalBags",fmt(totalBags));txt("rTotalQtls",fmt(totalQtls));txt("rTotalFcl",fmt(totalFcl));
+  txt("rPackingBrand",val("packingBrand"));txt("rReceived",fmt(received));txt("rConsumed",fmt(totalBags));txt("rExtra",fmt(extra));txt("rDamaged",fmt(damage));
+  txt("rStripFlag",val("branded"));txt("rStripCalc",fmt(strapCalc));txt("rStripConsumed",branded?fmt(strapConsumed):"");txt("rStripDamage",branded?fmt(strapDamage):"");txt("rStripReceived",branded?fmt(strapReceived)+" KG":"");
+  txt("rHoloFlag",val("branded"));txt("rHoloConsumed",branded?fmt(holoConsumed):"");txt("rHoloDamage",branded?fmt(holoDamage):"");txt("rHoloReceived",branded?fmt(holoReceived):"");
+  txt("rPrepared",val("preparedBy"));txt("rQuality",val("qualityBy"));
+
+  txt("pConsumed",fmt(totalBags));txt("pExtra",fmt(extra));txt("pDamage",fmt(damage));txt("pReceived",fmt(received));
+  txt("pmBagConsumed",fmt(totalBags));txt("pmBagDamage",fmt(damage));txt("pmBagReceived",fmt(received));
+  txt("pmStripFlag",val("branded"));txt("pmStripConsumed",branded?fmt(strapConsumed):"—");txt("pmStripDamage",branded?fmt(strapDamage):"—");txt("pmStripReceived",branded?fmt(strapReceived):"—");
+  txt("pmHoloFlag",val("branded"));txt("pmHoloConsumed",branded?fmt(holoConsumed):"—");txt("pmHoloDamage",branded?fmt(holoDamage):"—");txt("pmHoloReceived",branded?fmt(holoReceived):"—");
+
+  txt("gSr",val("srNo"));txt("gDate",prettyDate(val("date")));txt("gInstruction",val("instruction"));txt("gBatch",val("batch1"));txt("gBuyer",val("buyer"));txt("gInvoice",val("invoice"));txt("gDestination",val("destination"));txt("gPlant",val("plant"));
+  txt("gRaw",val("rawGoods"));txt("gBlend",val("blending"));txt("gBrand1",val("brand1"));txt("gBagType1",val("bagType1"));txt("gBags1",fmt(b1));txt("gQtls1",fmt(q1));
+  txt("gBrand2",val("brand2"));txt("gBagType2",val("bagType2"));txt("gBags2",fmt(b2));txt("gQtls2",fmt(q2));txt("gTotalBags",fmt(totalBags));txt("gTotalQtls",fmt(totalQtls));
+  txt("gPackingBrand",val("packingBrand"));txt("gReceived",fmt(received));txt("gConsumed",fmt(totalBags));txt("gExtra",fmt(extra));txt("gDamage",fmt(damage));
+  txt("gStripConsumed",fmt(gdmStripConsumed));txt("gStripDamage",fmt(strapDamage));txt("gStripReceived",fmt(gdmStripReceived));
+  txt("gHoloConsumed",fmt(holoConsumed));txt("gHoloDamage",fmt(holoDamage));txt("gHoloReceived",fmt(holoReceived));
+}
+let editingIndex=-1;
+function getHistory(){
+  try{return JSON.parse(localStorage.getItem("prlProductionHistory")||"[]")}catch(e){return []}
+}
+async function saveData(){
+  const data={}; ids.forEach(id=>data[id]=val(id));
+  data.savedAt=new Date().toLocaleString("en-IN");
+
+  // Do not allow completely blank entries into Supabase.
+  const hasData = [
+    data.instruction, data.date, data.buyer, data.destination,
+    data.rawGoods, data.brand1, data.bags1, data.bags2
+  ].some(v => String(v ?? '').trim() !== '');
+  if(!hasData){
+    alert("Please enter at least Instruction No., Date, Buyer, Brand or Bags Qty before saving.");
+    return;
+  }
+
+  const history=getHistory();
+  const oldEntry=(editingIndex>=0 && history[editingIndex]) ? history[editingIndex] : null;
+  const existingId=oldEntry && oldEntry.supabaseId ? oldEntry.supabaseId : null;
+
+  try{
+    showToast(existingId ? "Updating Supabase..." : "Saving to Supabase...");
+    const remote=await syncEntryToSupabase(data, existingId);
+    const saved=supabaseRowToHistory(remote);
+
+    if(editingIndex>=0 && history[editingIndex]){
+      history[editingIndex]=saved;
+      editingIndex=-1;
+      showToast("Entry updated in Supabase");
+    }else{
+      history.unshift(saved);
+      showToast("Entry saved to Supabase");
+    }
+
+    localStorage.setItem("prlProductionHistory",JSON.stringify(history));
+    localStorage.setItem("prlProductionData",JSON.stringify(saved));
+    savePRLEntries(history);
+    calc(); renderHistory(); refreshPRLDashboard();
+  }catch(error){
+    console.error("Supabase save error:", error);
+    alert("Supabase save failed: " + (error.message || error));
+  }
+}
+function loadData(){
+  let raw=localStorage.getItem("prlProductionData");
+  if(!raw){const h=getHistory();if(h.length)raw=JSON.stringify(h[h.length-1]);}
+  if(!raw)return;
+  try{const d=JSON.parse(raw);ids.forEach(id=>{if(d[id]!==undefined&&document.getElementById(id))document.getElementById(id).value=d[id]})}catch(e){}
+  calc(); renderHistory();
+}
+function editEntry(i){
+  const h=getHistory(), d=h[i]; if(!d)return;
+  ids.forEach(id=>{const e=document.getElementById(id);if(e)e.value=d[id]??""});
+  editingIndex=i; calc(); showPage("entry"); showToast("Entry loaded — edit karke Save karo");
+}
+async function deleteEntry(i){
+  const h=getHistory(), d=h[i]; if(!d)return;
+  const label=(d.instruction?"Instruction "+d.instruction:"this entry");
+  if(!confirm("Delete "+label+"? This saved entry will be permanently removed."))return;
+
+  try{
+    if(d.supabaseId){
+      const {error}=await prlSupabase.from('production_entries').delete().eq('id',d.supabaseId);
+      if(error) throw error;
+    }
+    h.splice(i,1);
+    savePRLEntries(h);
+    localStorage.setItem("prlProductionHistory",JSON.stringify(h));
+    if(h.length) localStorage.setItem("prlProductionData",JSON.stringify(h[0]));
+    else localStorage.removeItem("prlProductionData");
+    if(editingIndex===i)editingIndex=-1;
+    renderHistory(); refreshPRLDashboard();
+    showToast("Entry deleted");
+  }catch(error){
+    console.error("Supabase delete error:", error);
+    alert("Delete failed: " + (error.message || error));
+  }
+}
+async function deleteAllEntries(){
+  const h=getHistory();
+
+  if(!confirm("Delete ALL saved entries from the website AND Supabase? This cannot be undone.")) return;
+
+  try{
+    // Delete every row directly from Supabase, even if the browser cache is empty.
+    const {error} = await prlSupabase
+      .from('production_entries')
+      .delete()
+      .gte('id', 0);
+    if(error) throw error;
+
+    // Clear all browser caches after the database deletion succeeds.
+    localStorage.removeItem('prlProductionEntries');
+    localStorage.removeItem('prlProductionHistory');
+    localStorage.removeItem('prlProductionData');
+    editingIndex = -1;
+
+    renderHistory();
+    refreshPRLDashboard();
+    showToast("All entries deleted from Supabase");
+  }catch(error){
+    console.error("Supabase delete-all error:", error);
+    alert("Delete All failed: " + (error.message || error));
+  }
+}
+
+function renderHistory(){
+  const h=getHistory(), body=document.getElementById("historyBody"), empty=document.getElementById("historyEmpty"), count=document.getElementById("historyCount");
+  if(!body)return; count.textContent=h.length+" Entr"+(h.length===1?"y":"ies"); empty.style.display=h.length?"none":"block";
+  body.innerHTML=h.map((d,i)=>{
+    const bags=num(d.bags1)+num(d.bags2), q=(bags?((num(d.bags1)*num(d.pkgSize1)+num(d.bags2)*num(d.pkgSize2))/100):0);
+    return `<tr><td>${i+1}</td><td>${prettyDate(d.date)}</td><td>${d.instruction||"—"}</td><td>${d.buyer||"—"}</td><td>${d.brand1||"—"}</td><td>${fmt(bags)}</td><td>${fmt(q)}</td><td>${d.savedAt||"—"}</td><td><button class="btn" onclick="editEntry(${i})">✏ Edit</button> <button class="btn" onclick="deleteEntry(${i})">🗑 Delete</button></td></tr>`;
+  }).join("");
+}
+function clearForm(){
+  if(!confirm("Start a new entry? Current unsaved form values will be cleared."))return;
+  ids.forEach(id=>{const e=document.getElementById(id);if(e)e.value=""});
+  document.getElementById("branded").value="No";document.getElementById("preparedBy").value="Name :";document.getElementById("qualityBy").value="Name :";
+  calc();showToast("New blank entry ready");
+}
+function showToast(s){const t=document.getElementById("toast");t.textContent=s;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1800)}
+const titles={dashboard:"Operations Dashboard",entry:"Data Entry",production:"Production Report",packing:"Packing Material",gdm:"GDM Report",history:"Entry History"};
+(function migrateOldSave(){
+  if(!localStorage.getItem("prlProductionHistory")){
+    const old=localStorage.getItem("prlProductionData");
+    if(old){try{const d=JSON.parse(old);d.savedAt=new Date().toLocaleString("en-IN");localStorage.setItem("prlProductionHistory",JSON.stringify([d]));}catch(e){}}
+  }
+})();
+function showPage(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  document.querySelectorAll(".nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===id));
+  document.getElementById("pageTitle").textContent=titles[id]||"PRL Production";
+  document.getElementById("sidebar").classList.remove("open");window.scrollTo({top:0,behavior:"smooth"});
+}
+document.querySelectorAll(".nav button").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
+ids.forEach(id=>{const e=document.getElementById(id);if(e){e.addEventListener("input",calc);e.addEventListener("change",calc)}});
+renderHistory();
+document.getElementById("brand1").addEventListener("change",()=>{if(!val("packingBrand"))document.getElementById("packingBrand").value=val("brand1");calc()});
+
+async function shareProductionPDF(){
+  /*
+    Browser security does not allow a normal WhatsApp web link to silently
+    attach a local PDF. On supported mobile browsers we use the native Share
+    Sheet, where WhatsApp can be selected and the generated PDF is attached.
+    On desktop / unsupported browsers we open WhatsApp with a ready message
+    and download the PDF for manual attachment.
+  */
+  const report = document.getElementById("productionReport");
+  const instruction = val("instruction") || "Production Report";
+  const buyer = val("buyer") || "";
+  const filename = ("PRL_Production_Report_" + instruction).replace(/[^a-zA-Z0-9_-]/g,"_") + ".pdf";
+
+  // Print-friendly PDF generation through the browser's native print dialog.
+  // First try native file sharing when available.
+  if (navigator.share && navigator.canShare && window.isSecureContext) {
+    try {
+      const pdfBlob = await createPrintPDFBlob(report);
+      const file = new File([pdfBlob], filename, {type:"application/pdf"});
+      if (navigator.canShare({files:[file]})) {
+        await navigator.share({
+          title: "PRL Production Report",
+          text: "Production Report" + (buyer ? " - " + buyer : ""),
+          files: [file]
+        });
+        return;
+      }
+    } catch(e) {
+      if (e && e.name === "AbortError") return;
+    }
+  }
+
+  // Fallback: open WhatsApp and trigger the browser's print dialog so the
+  // user can choose "Save as PDF", then attach that PDF in WhatsApp.
+  const message = encodeURIComponent(
+    "PRL Production Report" +
+    (instruction ? " | Instruction No.: " + instruction : "") +
+    (buyer ? " | Buyer: " + buyer : "") +
+    "\\nPDF report is ready to attach."
+  );
+  window.open("https://wa.me/?text=" + message, "_blank");
+  setTimeout(()=>printPage("production"), 400);
+}
+
+async function createPrintPDFBlob(report){
+  /*
+    There is no standard browser API to turn arbitrary HTML into a PDF Blob.
+    This fallback creates a printable HTML document and opens the system
+    print flow. Native Share is attempted only where the browser supports
+    sharing actual files. Keeping this function makes the flow explicit.
+  */
+  throw new Error("Native file sharing unavailable");
+}
+
+
+function xmlSafe(s){return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&apos;")}
+function xCell(v){return '<Cell><Data ss:Type="String">'+xmlSafe(v)+'</Data></Cell>'}
+function xRow(a){return '<Row>'+a.map(xCell).join('')+'</Row>'}
+function downloadProductionExcel(){
+ const b1=num(val("bags1")),b2=num(val("bags2")),ps1=num(val("pkgSize1")),ps2=num(val("pkgSize2"));
+ const q1=b1*ps1/100,q2=b2*ps2/100,qf1=num(val("qtlsFcl1")),qf2=num(val("qtlsFcl2"));
+ const f1=qf1?q1/qf1:0,f2=qf2?q2/qf2:0,totalBags=b1+b2,extra=num(val("extraBags")),damage=num(val("damagedBags")),received=totalBags+extra+damage,branded=val("branded")==="Yes",sd=num(val("damagedStrap")),hd=num(val("damagedHolo"));
+ const sc=branded?Math.floor((totalBags*.001324041+.004)*100)/100:0,hc=branded?totalBags:0;
+ const dataH=["Sr. No.","Date","Instruction No.","Export Invoice No.","Buyer Name","Destination","Location","Plant No.","Raw Goods","% Blending","FG Brand 1","Pkg Date 1","Exp Date 1","Batch 1","Bags Type 1","Bags Qty 1","Pkg Size 1 KG","Qtls/FCL 1","FG Brand 2","Pkg Date 2","Exp Date 2","Batch 2","Bags Type 2","Bags Qty 2","Pkg Size 2 KG","Qtls/FCL 2","Packing Material Brand","Extra Bags","Damaged Bags","Branded Strip/Hologram","Damaged Strap Roll KG","Damaged Hologram","Prepared By","Quality Checked By"];
+ const dataR=[val("srNo"),val("date"),val("instruction"),val("invoice"),val("buyer"),val("destination"),val("location"),val("plant"),val("rawGoods"),val("blending"),val("brand1"),val("pkgDate1"),val("expDate1"),val("batch1"),val("bagType1"),b1,ps1,qf1,val("brand2"),val("pkgDate2"),val("expDate2"),val("batch2"),val("bagType2"),b2,ps2,qf2,val("packingBrand"),extra,damage,val("branded"),sd,hd,val("preparedBy"),val("qualityBy")];
+ const reportH=["Sr.No.","Raw Goods","% Blending","Finished Goods","Pkg Date","Exp Date","Batch No.","Bags Type","Qty Bags","Qty Qtls","No. of FCL"];
+ const reportR=[[1,val("rawGoods"),val("blending"),val("brand1"),val("pkgDate1"),val("expDate1"),val("batch1")?"IND/"+val("batch1"):"",val("bagType1"),b1,q1.toFixed(2),f1.toFixed(2)],[2,"","",val("brand2"),val("pkgDate2"),val("expDate2"),val("batch2")?"IND/"+val("batch2"):"",val("bagType2"),b2,q2.toFixed(2),f2.toFixed(2)],["","TOTAL","","","","","","",totalBags,(q1+q2).toFixed(2),(f1+f2).toFixed(2)]];
+ const packH=["Sr.No.","Brand Name","Received Qty","Consumed Qty","Extra Bags Stuffed","Damage Bags","Remarks"];
+ const matH=["Material","Applicable","Consumed","Damage","Received"];
+ function sheet(name,h,rs){return '<Worksheet ss:Name="'+xmlSafe(name)+'"><Table><Row>'+h.map(v=>'<Cell ss:StyleID="Header"><Data ss:Type="String">'+xmlSafe(v)+'</Data></Cell>').join('')+'</Row>'+rs.map(xRow).join('')+'</Table></Worksheet>'}
+ const xml='<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Styles><Style ss:ID="Header"><Font ss:Bold="1"/><Interior ss:Color="#D9EDE6" ss:Pattern="Solid"/></Style></Styles>'+
+ sheet("Data Entry",dataH,[dataR])+sheet("Production Report",reportH,reportR)+
+ sheet("Packing Material",packH,[[1,val("packingBrand"),received,totalBags,extra,damage,""]])+
+ sheet("Material Summary",matH,[["Packing Bags","Yes",totalBags,damage,received],["Stitching Strip / Brand Tape",val("branded"),sc,branded?sd:"",branded?sc+sd:""],["Holograms",val("branded"),hc,branded?hd:"",branded?hc+hd:""]])+
+ sheet("Summary",["Item","Value"],[["Instruction No.",val("instruction")],["Buyer",val("buyer")],["Destination",val("destination")],["Total Bags",totalBags],["Total Qty (Qtls.)",(q1+q2).toFixed(2)],["Total FCL",(f1+f2).toFixed(2)]])+"</Workbook>";
+ const blob=new Blob([xml],{type:"application/vnd.ms-excel"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="PRL_Production_Report_"+(val("instruction")||"New").replace(/[^a-zA-Z0-9_-]/g,"_")+".xls";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);showToast("Excel file downloaded");
+}
+
+function printPage(id){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("print-target"));
+  document.getElementById(id).classList.add("print-target");
+  window.print();
+  setTimeout(()=>document.getElementById(id).classList.remove("print-target"),500);
+}
+function toggleMenu(){document.getElementById("sidebar").classList.toggle("open")}
+loadData();
+if(!val("branch"))document.getElementById("branch").value="Mithi Rohar, New G.I.D.C-II, Gandhidham, Kutch - 370201 (GUJARAT)";
+if(!val("branded"))document.getElementById("branded").value="No";
+calc();
+
+/* Login - fixed */
+const PRL_LOGIN_USER = "shafeeqabdullah919@gmail.com";
+const PRL_LOGIN_PASS = "110#naseem";
+
+function handleLogin(e){
+  if(e) e.preventDefault();
+
+  const uEl = document.getElementById('loginUsername');
+  const pEl = document.getElementById('loginPassword');
+  const err = document.getElementById('loginError');
+
+  const u = (uEl ? uEl.value : '').trim();
+  const p = pEl ? pEl.value : '';
+
+  if(u === PRL_LOGIN_USER && p === PRL_LOGIN_PASS){
+    try { sessionStorage.setItem('prlLoggedIn','1'); } catch(e) {}
+    document.body.classList.remove('app-locked');
+    document.body.classList.add('app-unlocked');
+    if(err) err.style.display='none';
+    return false;
+  }
+
+  if(err){
+    err.textContent = 'Wrong username or password. Please check and try again.';
+    err.style.display='block';
+  }
+  return false;
+}
+
+function togglePassword(){
+  const input = document.getElementById('loginPassword');
+  const eye = document.getElementById('passwordEye');
+  if(!input) return;
+  if(input.type === 'password'){
+    input.type = 'text';
+    if(eye) eye.textContent = '🙈';
+  }else{
+    input.type = 'password';
+    if(eye) eye.textContent = '👁️';
+  }
+}
+
+function logoutUser(){
+  try { sessionStorage.removeItem('prlLoggedIn'); } catch(e) {}
+  document.body.classList.remove('app-unlocked');
+  document.body.classList.add('app-locked');
+  const u=document.getElementById('loginUsername');
+  const p=document.getElementById('loginPassword');
+  if(u) u.value='';
+  if(p) p.value='';
+}
+
+function initPRLLogin(){
+  let logged = false;
+  try { logged = sessionStorage.getItem('prlLoggedIn') === '1'; } catch(e) {}
+  if(logged){
+    document.body.classList.remove('app-locked');
+    document.body.classList.add('app-unlocked');
+  }else{
+    document.body.classList.remove('app-unlocked');
+    document.body.classList.add('app-locked');
+  }
+}
+
+/* Print a clean A4 production report */
+function printProductionA4(){
+  const report=document.getElementById('production');
+  if(!report){window.print();return;}
+  const clone=report.cloneNode(true);
+  clone.querySelectorAll('button').forEach(function(b){b.remove();});
+  const w=window.open('','_blank','width=1000,height=900');
+  if(!w){alert('Please allow pop-ups to generate the A4 report.');return;}
+  const printHtml='<!doctype html><html><head><title>Production Report</title>'+
+    '<meta charset="utf-8"><style>@page{size:A4;margin:12mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#111;background:#fff;font-size:10px;margin:0}h1,h2,h3{margin:0 0 8px}.card,.panel,.section,.report-card{box-shadow:none!important;border:1px solid #bbb!important;border-radius:0!important;background:#fff!important}table{width:100%;border-collapse:collapse;margin:7px 0 12px}th,td{border:1px solid #999;padding:5px;vertical-align:top}th{font-weight:700}input,select,textarea{border:0!important;background:transparent!important;width:100%;font:inherit;color:#111}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.row,.actions,.toolbar,.btn{display:none!important}.page-title{font-size:18px;font-weight:800;text-align:center;margin:0 0 4px}.subtitle{text-align:center;font-size:12px;margin-bottom:12px}.section-title{font-weight:800;background:#eee;padding:6px;border:1px solid #999;margin-top:10px}.signatures{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:28px}.signature{border-top:1px solid #555;padding-top:5px;text-align:center;min-height:35px}</style></head><body>'+clone.outerHTML+'<script>window.onload=function(){setTimeout(function(){window.print();},300)}<\\/script></body></html>';
+  w.document.open();w.document.write(printHtml);w.document.close();
+}
+
+/* PRL Supabase data layer */
+const PRL_SUPABASE_URL = "https://mjxyctqyjnwsvqsdopdw.supabase.co";
+const PRL_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_v2jDcU65PcZYKzLnjBk-lw_SpzpeIfW";
+const prlSupabase = window.supabase.createClient(
+  PRL_SUPABASE_URL,
+  PRL_SUPABASE_PUBLISHABLE_KEY
+);
+
+function getPRLEntries(){
+  try{
+    const raw = localStorage.getItem('prlProductionEntries');
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  }catch(e){ return []; }
+}
+
+function savePRLEntries(arr){
+  localStorage.setItem('prlProductionEntries', JSON.stringify(arr));
+}
+
+function buildPRLRecord(data){
+  const b1=num(data.bags1), b2=num(data.bags2);
+  const ps1=num(data.pkgSize1), ps2=num(data.pkgSize2);
+  const q1=b1*ps1/100, q2=b2*ps2/100;
+  const qf1=num(data.qtlsFcl1), qf2=num(data.qtlsFcl2);
+  const f1=qf1?q1/qf1:0, f2=qf2?q2/qf2:0;
+
+  return {
+    instruction: data.instruction || null,
+    entry_date: data.date || null,
+    buyer: data.buyer || null,
+    destination: data.destination || null,
+    raw_goods: data.rawGoods || null,
+    blending: data.blending === "" ? null : num(data.blending),
+    fg_brand: data.brand1 || null,
+    bags_qty: b1+b2,
+    pkg_size: ps1 || null,
+    qtl: q1+q2,
+    fcl: f1+f2,
+    payload: data
+  };
+}
+
+async function syncEntryToSupabase(data, existingId){
+  const record = buildPRLRecord(data);
+
+  if(existingId){
+    const {data: updated, error} = await prlSupabase
+      .from('production_entries')
+      .update(record)
+      .eq('id', existingId)
+      .select()
+      .single();
+    if(error) throw error;
+    return updated;
+  }
+
+  const {data: inserted, error} = await prlSupabase
+    .from('production_entries')
+    .insert([record])
+    .select()
+    .single();
+  if(error) throw error;
+  return inserted;
+}
+
+function supabaseRowToHistory(row){
+  const d = row && row.payload ? {...row.payload} : {};
+  d.savedAt = row && row.created_at
+    ? new Date(row.created_at).toLocaleString("en-IN")
+    : (d.savedAt || new Date().toLocaleString("en-IN"));
+  d.supabaseId = row ? row.id : d.supabaseId;
+  return d;
+}
+
+async function loadSupabaseEntries(){
+  const {data, error} = await prlSupabase
+    .from('production_entries')
+    .select('*')
+    .order('created_at', {ascending:false});
+
+  if(error){
+    console.error('Supabase load error:', error);
+    showToast('Supabase read blocked — check RLS policy');
+    return false;
+  }
+
+  const entries = (data || []).map(supabaseRowToHistory);
+  savePRLEntries(entries);
+
+  if(entries.length){
+    localStorage.setItem('prlProductionHistory', JSON.stringify(entries));
+    localStorage.setItem('prlProductionData', JSON.stringify(entries[0]));
+  }else{
+    localStorage.removeItem('prlProductionHistory');
+  }
+
+  renderHistory();
+  refreshPRLDashboard();
+  return true;
+}
+
+function refreshPRLDashboard(){
+  const entries = getPRLEntries();
+  const bags = entries.reduce((s,e)=>s + Number(e.bags||e.bags1||0),0);
+  const qtl = entries.reduce((s,e)=>{
+    if(e.qtl!==undefined) return s + Number(e.qtl||0);
+    return s + ((Number(e.bags1||0)*Number(e.pkgSize1||0)+Number(e.bags2||0)*Number(e.pkgSize2||0))/100);
+  },0);
+  const fcl = entries.reduce((s,e)=>{
+    if(e.fcl!==undefined) return s + Number(e.fcl||0);
+    const q1=Number(e.bags1||0)*Number(e.pkgSize1||0)/100;
+    const q2=Number(e.bags2||0)*Number(e.pkgSize2||0)/100;
+    return s + (Number(e.qtlsFcl1||0)?q1/Number(e.qtlsFcl1):0)
+             + (Number(e.qtlsFcl2||0)?q2/Number(e.qtlsFcl2):0);
+  },0);
+
+  const cards = document.getElementById('analyticsCards');
+  if(cards){
+    cards.innerHTML = [
+      ['Total Entries',entries.length],
+      ['Total Bags',bags.toLocaleString()],
+      ['Total Qtl',qtl.toLocaleString()],
+      ['Total FCL',fcl.toLocaleString()]
+    ].map(x=>`<div class="stat-card"><div class="label">${x[0]}</div><div class="value">${x[1]}</div></div>`).join('');
+  }
+
+  const buyers={}, brands={};
+  entries.forEach(e=>{
+    const bags=Number(e.bags||e.bags1||0);
+    const b=e.buyer||'Unknown'; buyers[b]=(buyers[b]||0)+bags;
+    const br=e.brand||e.brand1||'Unknown'; brands[br]=(brands[br]||0)+bags;
+  });
+  renderAnalyticsTable('buyerAnalytics',buyers,'Bags');
+  renderAnalyticsTable('brandAnalytics',brands,'Bags');
+}
+
+function renderAnalyticsTable(id,obj,label){
+  const el=document.getElementById(id); if(!el) return;
+  const rows=Object.entries(obj).sort((a,b)=>b[1]-a[1]);
+  if(!rows.length){el.innerHTML='<p style="color:#64748b">No saved entries yet.</p>';return;}
+  el.innerHTML='<table class="analytics-table"><thead><tr><th>Name</th><th>'+label+'</th></tr></thead><tbody>'+
+    rows.map(r=>`<tr><td>${escapeHTML(r[0])}</td><td>${Number(r[1]).toLocaleString()}</td></tr>`).join('')+
+    '</tbody></table>';
+}
+
+function escapeHTML(s){
+  return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function backupPRLData(){
+  const payload={
+    app:'Punjab Riceland Production Operations',
+    version:3,
+    source:'Supabase + local cache',
+    exportedAt:new Date().toISOString(),
+    entries:getPRLEntries()
+  };
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='PRL_Backup_'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  if(typeof showToast==='function') showToast('Backup downloaded');
+}
+
+function restorePRLData(){
+  const input=document.getElementById('restoreFile');
+  const file=input && input.files[0];
+  if(!file){alert('Please select a PRL backup JSON file.');return;}
+  const reader=new FileReader();
+  reader.onload=async function(){
+    try{
+      const data=JSON.parse(reader.result);
+      if(!data || !Array.isArray(data.entries)) throw new Error('Invalid backup');
+      if(!confirm('Restore '+data.entries.length+' entries? Existing entries will be replaced.')) return;
+
+      savePRLEntries(data.entries);
+      localStorage.setItem('prlProductionHistory',JSON.stringify(data.entries));
+      if(data.entries.length) localStorage.setItem('prlProductionData',JSON.stringify(data.entries[data.entries.length-1]));
+      renderHistory();
+      refreshPRLDashboard();
+      alert('Local backup restored. Use Save Entry to send new/edited records to Supabase.');
+    }catch(e){alert('Invalid or damaged backup file.');}
+  };
+  reader.readAsText(file);
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  setTimeout(function(){
+    refreshPRLDashboard();
+    loadSupabaseEntries();
+  },150);
+});
+</script>
+
+</body>
+</html>
